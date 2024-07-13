@@ -1,20 +1,21 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 import requests
-import time as tm  # Rename the import to avoid conflict
+import time as tm
 
-# Define the lists
+# categories
 mens_distances = [500, 1000, 1500, 5000, 10000]
 womens_distances = [500, 1000, 1500, 3000, 5000]
 years = list(range(2014, 2024))
 genders = ['f', 'm']
 
+# api call fn
 def make_masterlist(sex, year, distance, quantity):
-    # Construct the URL
+    # make url base
     url = f'https://speedskatingresults.com/api/xml/topn?gender={sex}&season={year}&distance={distance}&max={quantity}'
-    print(f"Fetching URL: {url}")  # Debug print
+    print(f"Fetching URL: {url}")
     response = requests.get(url)
-    if response.status_code == 200:
+    if response.status_code == 200: # check 4 success
         try:
             root = ET.fromstring(response.content)
             return root
@@ -25,7 +26,7 @@ def make_masterlist(sex, year, distance, quantity):
         print(f'Failed to retrieve data: {response.status_code}')
         return None
 
-def parse_result_to_df(root):
+def parse_result_to_df(root): # parse data
     data = []
     columns = ["Rank", "Family Name", "Given Name", "Nationality", "Time", "Date", "Location", "Event"]
     
@@ -39,7 +40,7 @@ def parse_result_to_df(root):
         date = result.find('date').text
         location = result.find('location').text
         event = result.find('event').text
-        data.append([rank, family_name, given_name, nationality, time, date, location, event])
+        data.append([rank, family_name, given_name, nationality, time, date, location, event]) # add to data to df
     
     df = pd.DataFrame(data, columns=columns)
     return df
@@ -50,12 +51,12 @@ def get_speedskating_data(sex, year, distance, quantity):
         df = parse_result_to_df(root)
         return df
     else:
-        return pd.DataFrame()  # Return empty DataFrame if no data was retrieved
+        return pd.DataFrame()  # empty df if no data retrieved
 
-# Initialize an empty list to store DataFrames
+# empty list to store DataFrames
 all_data = []
 
-# Iterate over each combination of gender, year, and distance
+# like a billion 4loops to pull from variables
 for gender in genders:
     distances = mens_distances if gender == 'm' else womens_distances
     for year in years:
@@ -67,12 +68,12 @@ for gender in genders:
                 df['Year'] = year
                 df['Distance'] = distance
                 all_data.append(df)
-            tm.sleep(1)  # Adding delay to avoid hitting the API rate limit
+            tm.sleep(1)  # 1sec delay to avoid rate limit
 
-# Concatenate all the DataFrames into one
+# concatenate dfs into one
 final_df = pd.concat(all_data, ignore_index=True)
 
-# Save the final DataFrame as two separate CSV files
+# save the final df
 final_df.to_csv('speedskating_results_with_index.csv', index=True)
 final_df.to_csv('speedskating_results_without_index.csv', index=False)
 
