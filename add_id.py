@@ -1,29 +1,23 @@
 import pandas as pd
 
-# Load the first CSV file
-file1 = 'file1.csv'
-file2 = 'file2.csv'
+file1 = r'C:\Users\Nilse\ssr_model\merged_file.csv'
+file2 = r'C:\Users\Nilse\ssr_model\top_skaters_women.csv'
 
-df1 = pd.read_csv(file1, header=None)
+df1 = pd.read_csv(file1)
 df2 = pd.read_csv(file2)
 
-# Assigning column names to the first CSV file
-df1.columns = ["Rank", "Family Name", "Given Name", "Country", "Time", "Date", "Location", "Event", "Gender", "Year", "Distance"]
+df2['ID'] = df2['ID'].astype(int)
 
-# Create a 'Full Name' column in both dataframes for matching
 df1['Full Name'] = df1['Family Name'] + ',' + df1['Given Name']
 df2['Full Name'] = df2['Family Name'] + ',' + df2['Given Name']
 
-# Merge df1 with df2 on 'Full Name' column
-merged_df = pd.merge(df1, df2[['ID', 'Full Name']], on='Full Name', how='left')
+df1 = pd.merge(df1, df2[['ID', 'Full Name']], on='Full Name', how='left', suffixes=('', '_new'))
 
-# Reorder columns to place 'ID' at the beginning
-merged_df = merged_df[['ID'] + df1.columns.tolist()]
+df1['ID'] = df1['ID'].combine_first(df1['ID_new'])
 
-# Drop the 'Full Name' column
-merged_df = merged_df.drop(columns=['Full Name'])
+df1 = df1.drop(columns=['Full Name', 'ID_new'])
 
-# Save the merged dataframe to a new CSV file
-merged_df.to_csv('merged_file.csv', index=False)
+output_file = r'C:\Users\Nilse\ssr_model\merged_file_final.csv'
+df1.to_csv(output_file, index=False)
 
-print("The merged file has been created successfully.")
+print("The merged file has been updated successfully.")
