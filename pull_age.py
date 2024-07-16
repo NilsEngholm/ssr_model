@@ -23,7 +23,7 @@ def pull_age(ID):
 
 # read master list df
 df = pd.read_csv('C:\\Users\\Nilse\\ssr_model\\Formatted masterlist.csv', usecols=[0])
-IDs = df['ID'].tolist()
+IDs = set(df['ID'].tolist())
 
 age = []
 
